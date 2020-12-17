@@ -1,4 +1,4 @@
-package se.mc.rig.restclient;
+package se.mc.rig.restclient.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -10,27 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import se.mc.rig.restclient.api.CustomerDto;
 import se.mc.rig.restclient.api.CustomerResultDto;
-import se.mc.rig.restclient.api.WriteResultDto;
 
 @SpringBootTest
-class RestClientTest {
+class EsbRestClientTest {
 
     public static final String SSN = "188512128899";
 
     @Autowired
-    RestClient restClient;
+    EsbRestClient esbRestClient;
 
     @Test
-    void doPost() {
-        CustomerResultDto customerResultDto = restClient.fetch(CustomerDto.builder().ssn(SSN).build());
-        assertThat(customerResultDto.getResponse_code()).isIn(valueOf(OK.value()), valueOf(NOT_FOUND.value()));
+    void fetch() {
+        CustomerResultDto customerResultDto = esbRestClient.fetch(CustomerDto.builder().ssn(SSN).build());
+        assertThat(customerResultDto.getResponse_code()).isEqualTo(valueOf(OK.value()));
     }
-
-    @Test
-    void update() {
-        WriteResultDto writeResultDto =  restClient.update(CustomerDto.builder().ssn(SSN).build());
-        assertThat(writeResultDto.getResponse_code()).isIn(valueOf(OK.value()));
-    }
-
-
 }

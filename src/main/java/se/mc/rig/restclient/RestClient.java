@@ -2,6 +2,9 @@ package se.mc.rig.restclient;
 
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.springframework.stereotype.Component;
+import se.mc.rig.restclient.api.CustomerDto;
+import se.mc.rig.restclient.api.CustomerResultDto;
+import se.mc.rig.restclient.api.WriteResultDto;
 
 import javax.annotation.PostConstruct;
 import javax.ws.rs.client.Client;
@@ -40,7 +43,7 @@ public class RestClient {
         }
     }
 
-    CustomerResultDto doPost(CustomerDto customerDto) {
+    CustomerResultDto fetch(CustomerDto customerDto) {
         Response response = webTarget.path(URL_FETCH).request(APPLICATION_JSON)
                 .post(entity(CustomerDto.builder().ssn(customerDto.getSsn()).build(), APPLICATION_JSON));
         if (response.getStatus() == OK.value()) {
