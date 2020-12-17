@@ -15,16 +15,17 @@ import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 import se.mc.rig.restclient.api.CustomerDto;
 import se.mc.rig.restclient.api.CustomerResultDto;
 
 /**
- * Denna klass kör mot: C:\git-repos\autogiro-notification-mock-service
- * Testar om det går att köra update mha av Http PATCH via request.build metod och HttpUrlConnectorProvider.SET_METHOD_WORKAROUND
- * Det funkar med spring boot implementation av api:et men inte med portalens implementation.
+ * Denna klass kör mot: C:\git-repos\autogiro-notification-mock-service Testar om det går att köra update mha av Http
+ * PATCH via request.build metod och HttpUrlConnectorProvider.SET_METHOD_WORKAROUND Det funkar med spring boot
+ * implementation av api:et men inte med portalens implementation.
  */
 
 @Component
@@ -33,8 +34,6 @@ public class EsbRestClient {
 
     private Client client;
     private WebTarget webTarget = null;
-
-
     private static final String ESB_HOST = "https://esbst.goteborg.se";
     private static final String ESB_URL_FETCH = "evryapi/api/registry/getcustomer/";
 
@@ -50,7 +49,9 @@ public class EsbRestClient {
             client = ClientBuilder.newClient().register(
                     (ClientRequestFilter) clientRequestContext -> clientRequestContext.getHeaders().add(
                             "Authorization",
-                            format("Basic %s", printBase64Binary(format("%s:%s", userName+"a", password+"1231").getBytes()))));
+                            format(
+                                    "Basic %s",
+                                    printBase64Binary(format("%s:%s", userName, password).getBytes()))));
             webTarget = client.target(ESB_HOST);
         }
     }
@@ -62,10 +63,12 @@ public class EsbRestClient {
         if (response.getStatus() == OK.value()) {
             return response.readEntity(CustomerResultDto.class);
         } else if (response.getStatus() == NOT_FOUND.value()) {
-            return CustomerResultDto.builder().response_code("404").customers(singletonList(CustomerDto.builder().build())).build();
+            return CustomerResultDto.builder().response_code("404")
+                    .customers(singletonList(CustomerDto.builder().build())).build();
         } else {
             throw new RuntimeException(format(
-                    "Error when fetching from notification service. endpoint: %s  Status code: %s", ESB_URL_FETCH,
+                    "Error when fetching from notification service. endpoint: %s  Status code: %s",
+                    ESB_URL_FETCH,
                     response.getStatus()));
         }
     }

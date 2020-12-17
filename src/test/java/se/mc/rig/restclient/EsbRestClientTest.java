@@ -22,6 +22,6 @@ class EsbRestClientTest {
     @Test
     void fetch() {
         CustomerResultDto customerResultDto = esbRestClient.fetch(CustomerDto.builder().ssn(SSN).build());
-        assertThat(customerResultDto.getResponse_code()).isEqualTo(valueOf(OK.value()));
+        assertThat(customerResultDto.getResponse_code()).isEqualTo(valueOf(NOT_FOUND.value()));
     }
 }
