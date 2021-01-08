@@ -1,5 +1,6 @@
 package se.mc.rig.restclient;
 
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.ws.rs.core.Response;
@@ -15,14 +16,14 @@ import se.mc.rig.restclient.api.WriteResultDto;
 class EsbRestClientTest {
 
     private static final String SSN_CREATE = "199101017880";
-    private static final String SSN_SWAGGER = "199001011239";
+    private static final String SSN_SWAGGER = "195712165512";
 
     @Autowired
     EsbRestClient esbRestClient;
 
     @Test
     void fetch() {
-        Response response = esbRestClient.fetch(CustomerDto.builder().ssn(SSN_SWAGGER).guid("123").build());
+        Response response = esbRestClient.fetch(CustomerDto.builder().ssn(SSN_SWAGGER).guid(randomUUID().toString()).build());
         System.out.println(response.readEntity(String.class));
         assertThat(response.getStatus()).isEqualTo(200);
     }

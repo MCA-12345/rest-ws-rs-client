@@ -30,10 +30,11 @@ import se.mc.rig.restclient.api.TokenDto;
 public class EvryRestClient {
 
     private static final String GRANT_TYPE_CLIENT_CREDENTIALS = "grant_type=client_credentials";
+    private static final int THRESHOLD = 500;
+    private Client tokenClient;
+    private WebTarget tokenWebTarget = null;
     private Client client;
     private WebTarget webTarget = null;
-    private Client client2;
-    private WebTarget webTarget2 = null;
     // private static final String EVRY_HOST = "http://localhost:8090";
     private static final String EVRY_HOST = "https://registryapi.exttest.ilnet.se";
     private static final String EVRY_HOST_TOKEN = "https://registryapi.exttest.ilnet.se";
@@ -51,8 +52,8 @@ public class EvryRestClient {
 
     @PostConstruct
     private void init() {
-        if (webTarget == null) {
-            client = ClientBuilder.newClient()
+        if (tokenWebTarget == null) {
+            tokenClient = ClientBuilder.newClient()
                     .register(
                             (ClientRequestFilter) clientRequestContext -> clientRequestContext.getHeaders()
                                     .add(
@@ -61,56 +62,57 @@ public class EvryRestClient {
                                                     "Basic %s",
                                                     printBase64Binary(
                                                             format("%s:%s", userName, password).getBytes()))));
-            webTarget = client.target(EVRY_HOST_TOKEN);
+            tokenWebTarget = tokenClient.target(EVRY_HOST_TOKEN);
         }
     }
 
     @PreDestroy
     private void close() {
+        tokenClient.close();
         client.close();
-        client2.close();
     }
 
-    private void initClient2() {
+    private void initClient() {
         tokenDto = getToken();
-        client2 = ClientBuilder.newClient()
+        client = ClientBuilder.newClient()
                 .register(
                         (ClientRequestFilter) clientRequestContext -> clientRequestContext.getHeaders()
                                 .add("Authorization", " Bearer " + tokenDto.getAccess_token()));
-        webTarget2 = client2.target(EVRY_HOST);
+        webTarget = client.target(EVRY_HOST);
     }
 
-    private WebTarget getWebTarget2() {
-        if (webTarget2 == null || hasExpired()) {
-            if (client2 != null) {
-                client2.close();
+    private WebTarget getWebTarget() {
+        if (webTarget == null || hasExpired()) {
+            if (client != null) {
+                client.close();
             }
-            initClient2();
+            initClient();
             tokenTimestamp = currentTimeMillis();
         }
-        return webTarget2;
+        return webTarget;
     }
 
     private boolean hasExpired() {
-        return (currentTimeMillis() - tokenTimestamp) > (parseInt(tokenDto.getExpires_in()) * 1000);
+        log.debug(format("Millis counter: %d  Expires in: %d",currentTimeMillis() - tokenTimestamp + 500, parseInt(tokenDto.getExpires_in()) * 1000) );
+        return (currentTimeMillis() - tokenTimestamp + THRESHOLD) > (parseInt(tokenDto.getExpires_in()) * 1000);
     }
 
     TokenDto getToken() {
         log.debug(EVRY_HOST_TOKEN + URL_TOKEN + "  " + userName + "=" + password);
-        Response response = webTarget.path(URL_TOKEN)
+        Response response = tokenWebTarget.path(URL_TOKEN)
                 .request(APPLICATION_JSON)
                 .post(entity(GRANT_TYPE_CLIENT_CREDENTIALS, APPLICATION_FORM_URLENCODED_TYPE));
         log.debug("Response: {}", response.getStatus());
-        TokenDto tokenDto = response.readEntity(TokenDto.class);
+        TokenDto newTokenDto = response.readEntity(TokenDto.class);
         // log.debug("Response: {}", response.readEntity(String.class));
-        log.debug("Response: {}", tokenDto.toString());
-        return tokenDto;
+        log.debug("Response: {}", newTokenDto.toString());
+        return newTokenDto;
     }
 
     Response fetch(CustomerDto customerDto) {
         log.debug(EVRY_HOST + URL_FETCH + "  " + userName + "=" + password);
         log.debug(customerDto.toString());
-        Response response = getWebTarget2().path(URL_FETCH)
+        Response response = getWebTarget().path(URL_FETCH)
                 .request(APPLICATION_JSON)
                 .post(entity(customerDto, APPLICATION_JSON));
         log.debug("Response: {}", response.getStatus());
@@ -120,7 +122,7 @@ public class EvryRestClient {
     Response create(CustomerDto customerDto) {
         log.debug(EVRY_HOST + URL_WRITE + "  " + userName + "=" + password);
         log.debug(customerDto.toString());
-        Response response = getWebTarget2().path(URL_WRITE)
+        Response response = getWebTarget().path(URL_WRITE)
                 .request(APPLICATION_JSON)
                 .post(entity(customerDto, APPLICATION_JSON));
         log.debug("Response: {}", response.getStatus());
@@ -130,7 +132,7 @@ public class EvryRestClient {
     Response update(CustomerDto customerDto) {
         log.debug(EVRY_HOST + URL_WRITE + "  " + userName + "=" + password);
         log.debug(customerDto.toString());
-        Response response = getWebTarget2().path(URL_WRITE)
+        Response response = getWebTarget().path(URL_WRITE)
                 .request(APPLICATION_JSON)
                 .put(entity(customerDto, APPLICATION_JSON));
         log.debug("Response: {}", response.getStatus());
@@ -140,7 +142,7 @@ public class EvryRestClient {
     Response delete(CustomerDto customerDto) {
         log.debug(EVRY_HOST + URL_DELETE + "  " + userName + "=" + password);
         log.debug(customerDto.toString());
-        Response response = getWebTarget2().path(URL_DELETE)
+        Response response = getWebTarget().path(URL_DELETE)
                 .request(APPLICATION_JSON)
                 .post(entity(customerDto, APPLICATION_JSON));
         log.debug("Response: {}", response.getStatus());

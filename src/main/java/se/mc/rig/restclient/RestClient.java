@@ -59,7 +59,7 @@ public class RestClient {
     }
 
 
-    public WriteResultDto update(CustomerDto customerDto) {
+    public WriteResultDto updatePATCH(CustomerDto customerDto) {
             Response response = webTarget.path(URL_WRITE).request(APPLICATION_JSON)
                     .build("PATCH", entity(customerDto, APPLICATION_JSON)).invoke();
             if (response.getStatus() == OK.value()) {

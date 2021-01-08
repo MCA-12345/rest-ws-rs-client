@@ -15,20 +15,20 @@ import se.mc.rig.restclient.api.WriteResultDto;
 @SpringBootTest
 class RestClientTest {
 
-    public static final String SSN = "188512128899";
+    private static final String SSN = "188512128899";
 
     @Autowired
     RestClient restClient;
 
     @Test
-    void doPost() {
+    void fetch() {
         CustomerResultDto customerResultDto = restClient.fetch(CustomerDto.builder().ssn(SSN).build());
         assertThat(customerResultDto.getResponse_code()).isIn(valueOf(OK.value()), valueOf(NOT_FOUND.value()));
     }
 
     @Test
     void update() {
-        WriteResultDto writeResultDto =  restClient.update(CustomerDto.builder().ssn(SSN).build());
+        WriteResultDto writeResultDto =  restClient.updatePATCH(CustomerDto.builder().ssn(SSN).build());
         assertThat(writeResultDto.getResponse_code()).isIn(valueOf(OK.value()));
     }
 
